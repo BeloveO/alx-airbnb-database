@@ -158,7 +158,7 @@ Start with the most frequently queried columns and monitor performance before ad
 
 
 
-# Query Performance Measurement
+# Measure the Query Performance
 
 ## 1. First, Check Existing Indexes
 
