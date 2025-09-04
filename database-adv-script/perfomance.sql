@@ -16,7 +16,7 @@ SELECT
   u.email,
   u.phone_number,
 
-  p.title              AS property_title,
+  p.title AS property_title,
   p.city,
   p.country,
   p.price_per_night,
@@ -29,11 +29,16 @@ SELECT
   pay.transaction_ref,
   pay.paid_at
 FROM bookings   AS b
-JOIN users      AS u   ON u.user_id = b.user_id
-JOIN properties AS p   ON p.property_id = b.property_id
-LEFT JOIN payments AS pay ON pay.booking_id = b.booking_id
+JOIN users      AS u  ON u.user_id = b.user_id
+JOIN properties AS p  ON p.property_id = b.property_id
+LEFT JOIN payments AS pay
+  ON pay.booking_id = b.booking_id
+  AND pay.payment_status = 'paid'           -- AND in JOIN to keep only paid payment rows
+WHERE
+  b.booking_status IN ('confirmed','completed')  -- AND in WHERE
+  AND b.booking_date BETWEEN :start_date AND :end_date
+  AND p.city = :city
 ORDER BY b.booking_date DESC, b.booking_id;
-
 
 -- ---------------------------
 -- Analyze the query’s performance using EXPLAIN
@@ -52,35 +57,42 @@ WHERE relname IN ('bookings', 'users', 'properties', 'payments');
 -- Now analyze the query with full details
 EXPLAIN (ANALYZE, BUFFERS, VERBOSE)
 SELECT 
-    b.booking_id,
-    b.user_id,
-    b.property_id,
-    b.booking_date,
-    b.check_in_date,
-    b.check_out_date,
-    b.booking_status,
-  
-    u.first_name,
-    u.last_name,
-    u.email,
-    u.phone_number,
-  
-    p.title              AS property_title,
-    p.city,
-    p.country,
-    p.price_per_night,
-  
-    pay.payment_id,
-    pay.payment_status,
-    pay.amount,
-    pay.currency,
-    pay.payment_method,
-    pay.transaction_ref,
-    pay.paid_at
+    SELECT
+  b.booking_id,
+  b.user_id,
+  b.property_id,
+  b.booking_date,
+  b.check_in_date,
+  b.check_out_date,
+  b.booking_status,
+
+  u.first_name,
+  u.last_name,
+  u.email,
+  u.phone_number,
+
+  p.title AS property_title,
+  p.city,
+  p.country,
+  p.price_per_night,
+
+  pay.payment_id,
+  pay.payment_status,
+  pay.amount,
+  pay.currency,
+  pay.payment_method,
+  pay.transaction_ref,
+  pay.paid_at
 FROM bookings   AS b
-JOIN users      AS u   ON u.user_id = b.user_id
-JOIN properties AS p   ON p.property_id = b.property_id
-LEFT JOIN payments AS pay ON pay.booking_id = b.booking_id
+JOIN users      AS u  ON u.user_id = b.user_id
+JOIN properties AS p  ON p.property_id = b.property_id
+LEFT JOIN payments AS pay
+  ON pay.booking_id = b.booking_id
+  AND pay.payment_status = 'paid'           -- AND in JOIN to keep only paid payment rows
+WHERE
+  b.booking_status IN ('confirmed','completed')  -- AND in WHERE
+  AND b.booking_date BETWEEN :start_date AND :end_date
+  AND p.city = :city
 ORDER BY b.booking_date DESC, b.booking_id;
 
 
